@@ -4,8 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:framework": "npm --prefix freetier-orchestrator install && npm --prefix freetier-orchestrator run build",
-    "build": "npm run build:framework && tsc",
+    "build": "tsc",
     "start": "node dist/server.js",
     "dev": "tsx src/server.ts"
   },
