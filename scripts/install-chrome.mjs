@@ -15,9 +15,6 @@ const result = await install({
   browser: Browser.CHROME,
   buildId,
   cacheDir,
-  downloadProgressCallback: (downloaded, total) => {
-    if (total > 0) process.stdout.write(`\r[install-chrome] ${Math.round((downloaded / total) * 100)}%`);
-  }
 });
 
-console.log(`\n[install-chrome] Chrome installed at: ${result.executablePath}`);
+console.log(`[install-chrome] Chrome installed at: ${result.executablePath}`);
