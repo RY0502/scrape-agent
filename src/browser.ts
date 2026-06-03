@@ -1,38 +1,52 @@
 import puppeteer, { type Browser } from "puppeteer";
 import { config } from "./config.js";
-import { platform, homedir } from "os";
+import { platform } from "os";
 import { existsSync, readdirSync } from "fs";
-import { join } from "path";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const PROJECT_ROOT = join(__dirname, "..");
+
+function scanCacheDir(cacheDir: string, isDarwin: boolean): string | null {
+  const chromeDir = join(cacheDir, "chrome");
+  if (!existsSync(chromeDir)) return null;
+  try {
+    const versions = readdirSync(chromeDir);
+    for (const version of versions) {
+      const exeName = isDarwin
+        ? "Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+        : "chrome-linux64/chrome";
+      const candidate = join(chromeDir, version, exeName);
+      if (existsSync(candidate)) return candidate;
+    }
+  } catch {
+    // ignore unreadable dirs
+  }
+  return null;
+}
 
 function getExecutablePath(): string {
-  // If CHROME_EXECUTABLE_PATH is set, use it
   if (config.CHROME_EXECUTABLE_PATH) {
     return config.CHROME_EXECUTABLE_PATH;
   }
 
-  const puppeteerCacheDir = join(homedir(), ".cache", "puppeteer");
-  const platformName = platform();
-  const isDarwin = platformName === "darwin";
+  const isDarwin = platform() === "darwin";
 
-  const chromeDir = join(puppeteerCacheDir, "chrome");
-  if (existsSync(chromeDir)) {
-    try {
-      const versions = readdirSync(chromeDir);
-      for (const version of versions) {
-        const exeName = isDarwin
-          ? "Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
-          : "chrome-linux64/chrome";
-        const candidate = join(chromeDir, version, exeName);
-        if (existsSync(candidate)) {
-          return candidate;
-        }
-      }
-    } catch {
-      // ignore unreadable dirs
-    }
+  // 1. Project-local cache (where .puppeteerrc.cjs downloads to)
+  const projectCache = join(PROJECT_ROOT, ".cache", "puppeteer");
+  const found = scanCacheDir(projectCache, isDarwin);
+  if (found) return found;
+
+  // 2. Home-based cache (fallback for local dev)
+  const homeCache = join(process.env.HOME ?? "", ".cache", "puppeteer");
+  if (homeCache !== projectCache) {
+    const homeFound = scanCacheDir(homeCache, isDarwin);
+    if (homeFound) return homeFound;
   }
 
-  // System-installed fallbacks
+  // 3. System-installed fallbacks
   const systemPaths = [
     "/usr/bin/google-chrome-stable",
     "/usr/bin/google-chrome",
@@ -44,7 +58,9 @@ function getExecutablePath(): string {
     if (existsSync(p)) return p;
   }
 
-  throw new Error(`Chrome executable not found in cache (${puppeteerCacheDir}) or system paths.`);
+  throw new Error(
+    `Chrome not found. Searched: ${projectCache}, ${homeCache}, system paths.`
+  );
 }
 
 export async function capturePageScreenshot(url: string): Promise<string> {
