@@ -53,6 +53,8 @@ app.post("/extract", async (request: Request, response: Response) => {
   }
 });
 
+let chromeReady: Promise<void> = Promise.resolve();
+
 async function installChrome(): Promise<void> {
   if (config.CHROME_EXECUTABLE_PATH && existsSync(config.CHROME_EXECUTABLE_PATH)) {
     console.log(`[chrome] Using configured path: ${config.CHROME_EXECUTABLE_PATH}`);
@@ -66,16 +68,25 @@ async function installChrome(): Promise<void> {
   }
   const platform = detectBrowserPlatform();
   console.log(`[chrome] Downloading Chrome (stable) for ${platform}...`);
-  try {
-    const buildId = await resolveBuildId(Browser.CHROME, platform!, "stable");
-    const result = await install({ browser: Browser.CHROME, buildId, cacheDir });
-    console.log(`[chrome] Chrome ready at: ${result.executablePath}`);
-  } catch (err) {
-    console.error("[chrome] Download failed:", err);
-  }
+  const buildId = await resolveBuildId(Browser.CHROME, platform!, "stable");
+  console.log(`[chrome] Resolved buildId: ${buildId}`);
+  const result = await install({ browser: Browser.CHROME, buildId, cacheDir });
+  console.log(`[chrome] Chrome ready at: ${result.executablePath}`);
 }
+
+app.use(async (_req, _res, next) => {
+  try {
+    await chromeReady;
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 app.listen(config.PORT, () => {
   console.log(`Scrape agent listening on port ${config.PORT}`);
-  installChrome();
+  chromeReady = installChrome().catch((err) => {
+    console.error("[chrome] Fatal: Chrome install failed:", err);
+    throw err;
+  });
 });

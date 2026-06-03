@@ -9,13 +9,13 @@ function getExecutablePath(): string {
     return config.CHROME_EXECUTABLE_PATH;
   }
 
-  const cacheDir = "/opt/render/.cache/puppeteer";
   const homeCacheDir = process.env.HOME ? `${process.env.HOME}/.cache/puppeteer` : null;
+  const cacheDir = homeCacheDir ?? "/opt/render/.cache/puppeteer";
   const platformName = platform();
   const isDarwin = platformName === "darwin";
 
   // Dynamically scan for any installed chrome version in the cache
-  for (const dir of [cacheDir, homeCacheDir]) {
+  for (const dir of [homeCacheDir, "/opt/render/.cache/puppeteer"]) {
     if (!dir || !existsSync(`${dir}/chrome`)) continue;
     try {
       const versions = readdirSync(`${dir}/chrome`);
@@ -43,7 +43,7 @@ function getExecutablePath(): string {
     if (existsSync(path)) return path;
   }
 
-  throw new Error(`Chrome executable not found in cache (${cacheDir}) or system paths.`);
+  throw new Error(`Chrome executable not found in cache (${homeCacheDir ?? "/opt/render/.cache/puppeteer"}) or system paths.`);
 }
 
 export async function capturePageScreenshot(url: string): Promise<string> {
