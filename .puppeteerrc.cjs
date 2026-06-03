@@ -3,5 +3,6 @@
  */
 module.exports = {
   cacheDirectory: "/opt/render/.cache/puppeteer",
-  skipChromeHeadlessShell: true,
+  "chrome-headless-shell": { skipDownload: true },
+  firefox: { skipDownload: true },
 };
