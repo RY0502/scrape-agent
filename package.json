@@ -19,6 +19,7 @@
     "express": "^5.1.0",
     "groq-sdk": "^0.32.0",
     "@puppeteer/browsers": "^2.5.3",
+    "@sparticuz/chromium": "^149.0.0",
     "puppeteer": "^24.15.0",
     "zod": "^3.25.76"
   },
