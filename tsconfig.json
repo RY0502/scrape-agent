@@ -1,1 +1,17 @@
-{"compilerOptions":{"target":"ES2022","module":"NodeNext","moduleResolution":"NodeNext","strict":true,"esModuleInterop":true,"forceConsistentCasingInFileNames":true,"skipLibCheck":true,"outDir":"dist","rootDir":"src","resolveJsonModule":true},"include":["src/**/*.ts"]}
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "resolveJsonModule": true,
+    "declaration": true,        // ← emits .d.ts files
+    "declarationMap": true      // ← maps .d.ts back to source (nice for IDE go-to-definition)
+  },
+  "include": ["src/**/*.ts"]
+}

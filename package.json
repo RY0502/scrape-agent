@@ -1,1 +1,30 @@
-{"name":"scrape-agent","version":"1.0.0","private":true,"type":"module","scripts":{"build":"tsc","start":"node dist/server.js","dev":"tsx src/server.ts"},"engines":{"node":">=20"},"dependencies":{"@langchain/langgraph":"^0.3.0","@types/express":"^5.0.0","dotenv":"^17.4.2","express":"^5.1.0","groq-sdk":"^0.32.0","puppeteer-core":"^24.15.0","zod":"^3.25.76"},"devDependencies":{"@types/node":"^22.13.14","tsx":"^4.20.3","typescript":"^5.8.3"}}
+{
+  "name": "scrape-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:framework": "npm --prefix freetier-orchestrator install && npm --prefix freetier-orchestrator run build",
+    "build": "npm run build:framework && tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx src/server.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@freetier/orchestrator": "git+https://github.com/RY0502/freetier-orchestrator.git",
+    "@langchain/langgraph": "^0.3.0",
+    "@types/express": "^5.0.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.1.0",
+    "groq-sdk": "^0.32.0",
+    "puppeteer-core": "^24.15.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}

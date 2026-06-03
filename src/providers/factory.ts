@@ -1,12 +1,13 @@
+import type { Provider } from "@freetier/orchestrator";
 import { config } from "../config.js";
 import { GroqProvider } from "./groq-provider.js";
 import { HuggingFaceProvider } from "./huggingface-provider.js";
 import { NvidiaProvider } from "./nvidia-provider.js";
 import { SambaNovaProvider } from "./sambanova-provider.js";
-import type { VisionProvider } from "./types.js";
+import type { VlmInput } from "./types.js";
 
-export function createProviders(): VisionProvider[] {
-  const providers: VisionProvider[] = [];
+export function createProviders(): Provider<VlmInput, string>[] {
+  const providers: Provider<VlmInput, string>[] = [];
 
   if (config.GROQ_API_KEY) {
     providers.push(

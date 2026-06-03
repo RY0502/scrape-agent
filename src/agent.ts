@@ -1,9 +1,18 @@
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
+import { FreeTierOrchestrator } from "@freetier/orchestrator";
 import { capturePageScreenshot } from "./browser.js";
-import { ProviderOrchestrator } from "./providers/orchestrator.js";
 import { createProviders } from "./providers/factory.js";
+import type { VlmInput } from "./providers/types.js";
 
-const orchestrator = new ProviderOrchestrator(createProviders());
+const SYSTEM_PROMPT = [
+  "You are an expert visual data extraction engine.",
+  "Extract only the data requested by the user from the provided webpage screenshot.",
+  "Follow the user's requested output format exactly.",
+  "Return only the final answer, without markdown, code fences, explanations, or extra text.",
+  "If the requested data is not visible in the screenshot, return the user's requested empty or null structure."
+].join(" ");
+
+const orchestrator = new FreeTierOrchestrator<VlmInput, string>(createProviders());
 
 const AgentState = Annotation.Root({
   url: Annotation<string>(),
@@ -23,8 +32,14 @@ async function extractNode(state: typeof AgentState.State) {
     throw new Error("Screenshot capture failed.");
   }
 
+  const result = await orchestrator.invoke({
+    system: SYSTEM_PROMPT,
+    prompt: state.prompt,
+    imageBase64: state.screenshotBase64
+  });
+
   return {
-    result: await orchestrator.extract(state.prompt, state.screenshotBase64),
+    result,
     screenshotBase64: undefined
   };
 }

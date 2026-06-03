@@ -1,16 +1,9 @@
 import Groq from "groq-sdk";
-import type { VisionProvider } from "./types.js";
+import type { Provider } from "@freetier/orchestrator";
+import type { VlmInput } from "./types.js";
 
-const systemPrompt = [
-  "You are an expert visual data extraction engine.",
-  "Extract only the data requested by the user from the provided webpage screenshot.",
-  "Follow the user's requested output format exactly.",
-  "Return only the final answer, without markdown, code fences, explanations, or extra text.",
-  "If the requested data is not visible in the screenshot, return the user's requested empty or null structure."
-].join(" ");
-
-export class GroqProvider implements VisionProvider {
-  name = "Groq";
+export class GroqProvider implements Provider<VlmInput, string> {
+  readonly name = "Groq";
   private client: Groq;
   private model: string;
   private maxTokens: number;
@@ -21,7 +14,7 @@ export class GroqProvider implements VisionProvider {
     this.maxTokens = maxTokens;
   }
 
-  async extract(prompt: string, screenshotBase64: string): Promise<string> {
+  async invoke(input: VlmInput): Promise<string> {
     try {
       const completion = await this.client.chat.completions.create({
         model: this.model,
@@ -30,19 +23,19 @@ export class GroqProvider implements VisionProvider {
         messages: [
           {
             role: "system",
-            content: systemPrompt
+            content: input.system
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: prompt
+                text: input.prompt
               },
               {
                 type: "image_url",
                 image_url: {
-                  url: `data:image/jpeg;base64,${screenshotBase64}`
+                  url: `data:image/jpeg;base64,${input.imageBase64}`
                 }
               }
             ]
@@ -57,31 +50,5 @@ export class GroqProvider implements VisionProvider {
       }
       throw error;
     }
-  }
-
-  isRateLimitError(error: unknown): boolean {
-    if (error instanceof Groq.APIError) {
-      return error.status === 429 || error.message.toLowerCase().includes("rate limit");
-    }
-
-    if (error instanceof Error) {
-      const message = error.message.toLowerCase();
-      return message.includes("rate limit") || message.includes("quota exceeded") || message.includes("too many requests");
-    }
-
-    return false;
-  }
-
-  isUnavailableError(error: unknown): boolean {
-    if (error instanceof Groq.APIError) {
-      return error.status === 503 || error.status === 502 || error.status === 500;
-    }
-
-    if (error instanceof Error) {
-      const message = error.message.toLowerCase();
-      return message.includes("unavailable") || message.includes("under load") || message.includes("timeout") || message.includes("unreachable");
-    }
-
-    return false;
   }
 }
