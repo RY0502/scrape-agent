@@ -3,13 +3,11 @@ services:
     name: scrape-agent
     runtime: node
     plan: starter
-    buildCommand: apt-get update && apt-get install -y chromium && npm ci && npm run build
+    buildCommand: npm ci && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: CHROME_EXECUTABLE_PATH
-        value: /usr/bin/chromium
       - key: MAX_CONCURRENT_REQUESTS
         value: "1"
       - key: PAGE_TIMEOUT_MS

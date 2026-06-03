@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "node node_modules/puppeteer/install.mjs",
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "tsx src/server.ts"
@@ -18,7 +19,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.1.0",
     "groq-sdk": "^0.32.0",
-    "puppeteer-core": "^24.15.0",
+    "puppeteer": "^24.15.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

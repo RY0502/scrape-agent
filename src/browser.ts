@@ -1,31 +1,22 @@
-import puppeteer, { type Browser } from "puppeteer-core";
+import puppeteer, { type Browser } from "puppeteer";
 import { config } from "./config.js";
 
-const executablePathCandidates = [
-  config.CHROME_EXECUTABLE_PATH,
-  "/usr/bin/chromium",
-  "/usr/bin/chromium-browser",
-  "/usr/bin/google-chrome-stable",
-  "/usr/bin/google-chrome",
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-].filter((value): value is string => Boolean(value));
-
-function getExecutablePath(): string {
-  const executablePath = executablePathCandidates[0];
-
-  if (!executablePath) {
-    throw new Error("No Chromium executable path configured. Set CHROME_EXECUTABLE_PATH.");
+function getExecutablePath(): string | undefined {
+  // If CHROME_EXECUTABLE_PATH is set, use it
+  if (config.CHROME_EXECUTABLE_PATH) {
+    return config.CHROME_EXECUTABLE_PATH;
   }
-
-  return executablePath;
+  // Otherwise, let Puppeteer use its bundled Chromium
+  return undefined;
 }
 
 export async function capturePageScreenshot(url: string): Promise<string> {
   let browser: Browser | undefined;
 
   try {
-    browser = await puppeteer.launch({
-      executablePath: getExecutablePath(),
+    const executablePath = getExecutablePath();
+    const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
+      ...(executablePath && { executablePath }),
       headless: true,
       args: [
         "--no-sandbox",
@@ -45,7 +36,9 @@ export async function capturePageScreenshot(url: string): Promise<string> {
         "--single-process",
         "--js-flags=--max-old-space-size=128"
       ]
-    });
+    };
+
+    browser = await puppeteer.launch(launchOptions);
 
     const page = await browser.newPage();
     await page.setCacheEnabled(false);
