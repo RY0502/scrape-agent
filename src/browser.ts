@@ -2,13 +2,16 @@ import puppeteer, { type Browser } from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 import { config } from "./config.js";
 
-chromium.setGraphicsMode = true;
+// Keep graphics disabled on serverless - more stable
+chromium.setGraphicsMode = false;
 
 export async function capturePageScreenshot(url: string): Promise<string> {
   let browser: Browser | undefined;
 
   try {
+    console.log(`[browser] Starting screenshot for: ${url}`);
     const executablePath = config.CHROME_EXECUTABLE_PATH || await chromium.executablePath();
+    console.log(`[browser] Executable: ${executablePath}`);
 
     browser = await puppeteer.launch({
       args: [
@@ -18,6 +21,7 @@ export async function capturePageScreenshot(url: string): Promise<string> {
       executablePath,
       headless: true,
     });
+    console.log(`[browser] Browser launched`);
 
     const page = await browser.newPage();
 
@@ -59,13 +63,16 @@ export async function capturePageScreenshot(url: string): Promise<string> {
       void request.continue();
     });
 
+    console.log(`[browser] Navigating to page...`);
     await page.goto(url, {
       waitUntil: "domcontentloaded",
       timeout: config.PAGE_TIMEOUT_MS
     });
+    console.log(`[browser] Page loaded, settling for ${config.PAGE_SETTLE_MS}ms...`);
 
     await new Promise((resolve) => setTimeout(resolve, config.PAGE_SETTLE_MS));
 
+    console.log(`[browser] Taking screenshot...`);
     const screenshot = await page.screenshot({
       type: "jpeg",
       quality: config.SCREENSHOT_QUALITY,
@@ -74,6 +81,7 @@ export async function capturePageScreenshot(url: string): Promise<string> {
     });
 
     await page.close();
+    console.log(`[browser] Screenshot complete, size: ${screenshot.length} bytes`);
 
     return screenshot;
   } finally {
