@@ -13,7 +13,7 @@ services:
       - key: PAGE_TIMEOUT_MS
         value: "25000"
       - key: PAGE_SETTLE_MS
-        value: "2000"
+        value: "3000"
       - key: SCREENSHOT_WIDTH
         value: "1280"
       - key: SCREENSHOT_HEIGHT

@@ -60,7 +60,7 @@ export async function capturePageScreenshot(url: string): Promise<string> {
     });
 
     await page.goto(url, {
-      waitUntil: "networkidle0",
+      waitUntil: "domcontentloaded",
       timeout: config.PAGE_TIMEOUT_MS
     });
 
