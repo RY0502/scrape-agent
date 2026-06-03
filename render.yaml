@@ -3,7 +3,7 @@ services:
     name: scrape-agent
     runtime: node
     plan: starter
-    buildCommand: npm ci && npm run build
+    buildCommand: apt-get update && apt-get install -y chromium && npm ci && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
