@@ -13,7 +13,7 @@ function getExecutablePath(): string {
   try {
     return computeExecutablePath({
       browser: BrowserType.CHROME,
-      buildId: "stable",
+      buildId: "131.0.6778.204",
       cacheDir: process.env.HOME ? `${process.env.HOME}/.cache/puppeteer` : "/opt/render/.cache/puppeteer"
     });
   } catch {
