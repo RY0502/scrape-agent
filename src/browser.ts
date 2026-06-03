@@ -1,13 +1,29 @@
 import puppeteer, { type Browser } from "puppeteer";
+import { computeExecutablePath, Browser as BrowserType } from "@puppeteer/browsers";
 import { config } from "./config.js";
+import { platform } from "os";
 
-function getExecutablePath(): string | undefined {
+function getExecutablePath(): string {
   // If CHROME_EXECUTABLE_PATH is set, use it
   if (config.CHROME_EXECUTABLE_PATH) {
     return config.CHROME_EXECUTABLE_PATH;
   }
-  // Otherwise, let Puppeteer use its bundled Chromium
-  return undefined;
+  
+  // Otherwise, compute path to installed Chrome
+  try {
+    return computeExecutablePath({
+      browser: BrowserType.CHROME,
+      buildId: "stable",
+      cacheDir: process.env.HOME ? `${process.env.HOME}/.cache/puppeteer` : "/opt/render/.cache/puppeteer"
+    });
+  } catch {
+    // Fallback to common paths
+    const platformName = platform();
+    if (platformName === "darwin") {
+      return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+    }
+    return "/usr/bin/chromium";
+  }
 }
 
 export async function capturePageScreenshot(url: string): Promise<string> {
