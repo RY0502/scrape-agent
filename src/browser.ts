@@ -2,7 +2,7 @@ import puppeteer, { type Browser } from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
 import { config } from "./config.js";
 
-chromium.setGraphicsMode = false;
+chromium.setGraphicsMode = true;
 
 export async function capturePageScreenshot(url: string): Promise<string> {
   let browser: Browser | undefined;
@@ -11,12 +11,36 @@ export async function capturePageScreenshot(url: string): Promise<string> {
     const executablePath = config.CHROME_EXECUTABLE_PATH || await chromium.executablePath();
 
     browser = await puppeteer.launch({
-      args: chromium.args,
+      args: [
+        ...chromium.args,
+        '--disable-blink-features=AutomationControlled',
+      ],
       executablePath,
-      headless: "shell",
+      headless: true,
     });
 
     const page = await browser.newPage();
+
+    // Set realistic user agent
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    );
+
+    // Set extra HTTP headers
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    });
+
+    // Override navigator properties to hide automation
+    await page.evaluateOnNewDocument(() => {
+      Object.defineProperty(navigator, 'webdriver', { get: () => false });
+      Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+      Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+      (window as any).chrome = { runtime: {} };
+    });
+
     await page.setCacheEnabled(false);
     await page.setViewport({
       width: config.SCREENSHOT_WIDTH,
@@ -36,7 +60,7 @@ export async function capturePageScreenshot(url: string): Promise<string> {
     });
 
     await page.goto(url, {
-      waitUntil: "domcontentloaded",
+      waitUntil: "networkidle0",
       timeout: config.PAGE_TIMEOUT_MS
     });
 
