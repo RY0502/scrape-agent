@@ -1,10 +1,6 @@
 import "dotenv/config";
 import express, { type Request, type Response } from "express";
 import { z } from "zod";
-import { existsSync } from "fs";
-import { install, resolveBuildId, Browser, detectBrowserPlatform } from "@puppeteer/browsers";
-import { join } from "path";
-import { homedir } from "os";
 import { runExtractionAgent, getOrchestratorStatus } from "./agent.js";
 import { config } from "./config.js";
 
@@ -53,40 +49,6 @@ app.post("/extract", async (request: Request, response: Response) => {
   }
 });
 
-let chromeReady: Promise<void> = Promise.resolve();
-
-async function installChrome(): Promise<void> {
-  if (config.CHROME_EXECUTABLE_PATH && existsSync(config.CHROME_EXECUTABLE_PATH)) {
-    console.log(`[chrome] Using configured path: ${config.CHROME_EXECUTABLE_PATH}`);
-    return;
-  }
-  const cacheDir = join(homedir(), ".cache", "puppeteer");
-  const chromeCacheDir = join(cacheDir, "chrome");
-  if (existsSync(chromeCacheDir)) {
-    console.log("[chrome] Chrome cache already exists, skipping download.");
-    return;
-  }
-  const platform = detectBrowserPlatform();
-  console.log(`[chrome] Downloading Chrome (stable) for ${platform}...`);
-  const buildId = await resolveBuildId(Browser.CHROME, platform!, "stable");
-  console.log(`[chrome] Resolved buildId: ${buildId}`);
-  const result = await install({ browser: Browser.CHROME, buildId, cacheDir });
-  console.log(`[chrome] Chrome ready at: ${result.executablePath}`);
-}
-
-app.use(async (_req, _res, next) => {
-  try {
-    await chromeReady;
-    next();
-  } catch (err) {
-    next(err);
-  }
-});
-
 app.listen(config.PORT, () => {
   console.log(`Scrape agent listening on port ${config.PORT}`);
-  chromeReady = installChrome().catch((err) => {
-    console.error("[chrome] Fatal: Chrome install failed:", err);
-    throw err;
-  });
 });
