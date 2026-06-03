@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express, { type Request, type Response } from "express";
 import { z } from "zod";
+import { existsSync } from "fs";
 import { runExtractionAgent, getOrchestratorStatus } from "./agent.js";
 import { config } from "./config.js";
 
@@ -51,4 +52,15 @@ app.post("/extract", async (request: Request, response: Response) => {
 
 app.listen(config.PORT, () => {
   console.log(`Scrape agent listening on port ${config.PORT}`);
+  const probePaths = [
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/chromium",
+    "/opt/google/chrome/chrome",
+  ];
+  for (const p of probePaths) {
+    console.log(`[chrome-probe] ${p}: ${existsSync(p) ? "EXISTS" : "missing"}`);
+  }
+  console.log(`[chrome-probe] CHROME_EXECUTABLE_PATH=${config.CHROME_EXECUTABLE_PATH ?? "(not set)"}`);
 });
