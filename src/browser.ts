@@ -33,9 +33,11 @@ function getExecutablePath(): string {
 
   // System-installed fallbacks
   const systemPaths = [
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium-browser",
     "/usr/bin/chromium",
-    "/usr/bin/google-chrome"
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   ];
   for (const path of systemPaths) {
     if (existsSync(path)) return path;
