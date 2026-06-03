@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "postinstall": "node node_modules/puppeteer/install.mjs || true",
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "tsx src/server.ts"

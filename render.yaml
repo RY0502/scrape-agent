@@ -3,7 +3,7 @@ services:
     name: scrape-agent
     runtime: node
     plan: starter
-    buildCommand: npm ci && npm run build
+    buildCommand: rm -rf /opt/render/.cache/puppeteer && PUPPETEER_SKIP_DOWNLOAD=true npm ci && node scripts/install-chrome.mjs && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
