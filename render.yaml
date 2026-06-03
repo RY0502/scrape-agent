@@ -3,7 +3,7 @@ services:
     name: scrape-agent
     runtime: node
     plan: starter
-    buildCommand: rm -rf /opt/render/.cache/puppeteer/chrome-headless-shell && npm ci && npm run build
+    buildCommand: rm -rf ~/.cache/puppeteer && npm ci && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV

@@ -1,7 +1,8 @@
 import puppeteer, { type Browser } from "puppeteer";
 import { config } from "./config.js";
-import { platform } from "os";
+import { platform, homedir } from "os";
 import { existsSync, readdirSync } from "fs";
+import { join } from "path";
 
 function getExecutablePath(): string {
   // If CHROME_EXECUTABLE_PATH is set, use it
@@ -9,19 +10,19 @@ function getExecutablePath(): string {
     return config.CHROME_EXECUTABLE_PATH;
   }
 
-  const homeCacheDir = process.env.HOME ? `${process.env.HOME}/.cache/puppeteer` : null;
-  const cacheDir = homeCacheDir ?? "/opt/render/.cache/puppeteer";
+  const puppeteerCacheDir = join(homedir(), ".cache", "puppeteer");
   const platformName = platform();
   const isDarwin = platformName === "darwin";
 
-  // Dynamically scan for any installed chrome version in the cache
-  for (const dir of [homeCacheDir, "/opt/render/.cache/puppeteer"]) {
-    if (!dir || !existsSync(`${dir}/chrome`)) continue;
+  const chromeDir = join(puppeteerCacheDir, "chrome");
+  if (existsSync(chromeDir)) {
     try {
-      const versions = readdirSync(`${dir}/chrome`);
+      const versions = readdirSync(chromeDir);
       for (const version of versions) {
-        const exeName = isDarwin ? "Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" : "chrome-linux64/chrome";
-        const candidate = `${dir}/chrome/${version}/${exeName}`;
+        const exeName = isDarwin
+          ? "Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+          : "chrome-linux64/chrome";
+        const candidate = join(chromeDir, version, exeName);
         if (existsSync(candidate)) {
           return candidate;
         }
@@ -39,11 +40,11 @@ function getExecutablePath(): string {
     "/usr/bin/chromium",
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
   ];
-  for (const path of systemPaths) {
-    if (existsSync(path)) return path;
+  for (const p of systemPaths) {
+    if (existsSync(p)) return p;
   }
 
-  throw new Error(`Chrome executable not found in cache (${homeCacheDir ?? "/opt/render/.cache/puppeteer"}) or system paths.`);
+  throw new Error(`Chrome executable not found in cache (${puppeteerCacheDir}) or system paths.`);
 }
 
 export async function capturePageScreenshot(url: string): Promise<string> {
