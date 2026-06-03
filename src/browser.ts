@@ -1,35 +1,47 @@
 import puppeteer, { type Browser } from "puppeteer";
 import { config } from "./config.js";
 import { platform } from "os";
-import { existsSync } from "fs";
+import { existsSync, readdirSync } from "fs";
 
 function getExecutablePath(): string {
   // If CHROME_EXECUTABLE_PATH is set, use it
   if (config.CHROME_EXECUTABLE_PATH) {
     return config.CHROME_EXECUTABLE_PATH;
   }
-  
-  // Check for @puppeteer/browsers installed Chrome
-  const cacheDir = process.env.HOME ? `${process.env.HOME}/.cache/puppeteer` : "/opt/render/.cache/puppeteer";
-  const version = "131.0.6778.204";
+
+  const cacheDir = "/opt/render/.cache/puppeteer";
+  const homeCacheDir = process.env.HOME ? `${process.env.HOME}/.cache/puppeteer` : null;
   const platformName = platform();
-  
-  // Try the actual path structure created by @puppeteer/browsers
-  const possiblePaths = [
-    `${cacheDir}/chrome/${platformName === "darwin" ? "mac" : "linux"}-${version}/chrome-${platformName === "darwin" ? "mac" : "linux"}64/chrome`,
-    `${cacheDir}/chrome/${platformName === "darwin" ? "mac_arm" : "linux"}-${version}/chrome-${platformName === "darwin" ? "mac" : "linux"}64/chrome`,
+  const isDarwin = platformName === "darwin";
+
+  // Dynamically scan for any installed chrome version in the cache
+  for (const dir of [cacheDir, homeCacheDir]) {
+    if (!dir || !existsSync(`${dir}/chrome`)) continue;
+    try {
+      const versions = readdirSync(`${dir}/chrome`);
+      for (const version of versions) {
+        const exeName = isDarwin ? "Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" : "chrome-linux64/chrome";
+        const candidate = `${dir}/chrome/${version}/${exeName}`;
+        if (existsSync(candidate)) {
+          return candidate;
+        }
+      }
+    } catch {
+      // ignore unreadable dirs
+    }
+  }
+
+  // System-installed fallbacks
+  const systemPaths = [
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     "/usr/bin/chromium",
     "/usr/bin/google-chrome"
   ];
-  
-  for (const path of possiblePaths) {
-    if (existsSync(path)) {
-      return path;
-    }
+  for (const path of systemPaths) {
+    if (existsSync(path)) return path;
   }
-  
-  throw new Error(`Chrome executable not found. Tried: ${possiblePaths.join(", ")}`);
+
+  throw new Error(`Chrome executable not found in cache (${cacheDir}) or system paths.`);
 }
 
 export async function capturePageScreenshot(url: string): Promise<string> {
