@@ -6,7 +6,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "tsx src/server.ts"
+    "dev": "tsx src/server.ts",
+    "test:providers": "tsx test-providers.ts",
+    "diagnose:huggingface": "tsx diagnose-huggingface.ts"
   },
   "engines": {
     "node": ">=20"
