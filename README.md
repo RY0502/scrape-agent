@@ -4,14 +4,14 @@ A stateless TypeScript LangGraph agent that accepts a URL and extraction prompt,
 
 ## Provider Orchestration
 
-The service includes an intelligent multi-provider orchestration layer with automatic failover:
+The service uses the `@freetier/orchestrator` framework with built-in support for multiple LLM providers:
 
-- **Supported providers:** Groq, HuggingFace, NVIDIA NIM, SambaNova
-- **Priority order:** Groq (primary) → HuggingFace → NVIDIA → SambaNova
+- **Supported providers:** Groq, HuggingFace, NVIDIA NIM, SambaNova, Cloudflare Workers AI
+- **Automatic configuration:** Providers are initialized based on available API keys in environment
 - **Automatic failover:** On rate limits or unavailability, switches to next provider
 - **Sticky default:** Successful provider becomes default for subsequent requests
 - **Cooldown period:** Failed providers are skipped for 2 minutes
-- **No permanent disabling:** All providers remain available after cooldown
+- **Text & Vision support:** All providers support both text-only and vision inputs
 - **Logging:** All provider selection decisions are logged
 
 ## Deployment choice
@@ -113,22 +113,30 @@ Expected response shape:
 
 ### Provider Configuration
 
-At least one provider API key is required. Configure multiple providers for automatic failover.
+At least one provider API key is required. The framework automatically initializes providers based on available keys.
 
-| Variable | Required | Default | Description |
-| --- | --- | --- | --- |
-| `GROQ_API_KEY` | Optional* | none | Groq API key. Primary provider. |
-| `GROQ_VISION_MODEL` | No | `meta-llama/llama-4-scout-17b-16e-instruct` | Groq vision model. |
-| `HUGGINGFACE_API_KEY` | Optional* | none | HuggingFace API key. Secondary provider. |
-| `HUGGINGFACE_VISION_MODEL` | No | `meta-llama/Llama-3.2-11B-Vision-Instruct` | HuggingFace vision model. |
-| `NVIDIA_API_KEY` | Optional* | none | NVIDIA NIM API key. Tertiary provider. |
-| `NVIDIA_VISION_MODEL` | No | `mistralai/mistral-large-3-675b-instruct-2512` | NVIDIA vision model. |
-| `NVIDIA_API_URL` | No | `https://integrate.api.nvidia.com/v1/chat/completions` | NVIDIA API endpoint. |
-| `SAMBANOVA_API_KEY` | Optional* | none | SambaNova API key. Quaternary provider. |
-| `SAMBANOVA_VISION_MODEL` | No | `Llama-4-Maverick-17B-128E-Instruct` | SambaNova vision model. |
-| `SAMBANOVA_API_URL` | No | `https://api.sambanova.ai/v1/chat/completions` | SambaNova API endpoint. |
+| Variable | Required | Description |
+| --- | --- | --- |
+| `GROQ_API_KEY` | Optional* | Groq API key |
+| `HUGGINGFACE_API_KEY` | Optional* | HuggingFace API key |
+| `NVIDIA_API_KEY` | Optional* | NVIDIA NIM API key |
+| `SAMBANOVA_API_KEY` | Optional* | SambaNova API key |
+| `CLOUDFLARE_API_TOKEN` | Optional* | Cloudflare Workers AI API token |
+| `CLOUDFLARE_ACCOUNT_ID` | Optional* | Cloudflare account ID (required with `CLOUDFLARE_API_TOKEN`) |
 
-*At least one provider API key must be set.
+*At least one provider must be configured.
+
+**Optional model overrides** (framework provides sensible defaults):
+
+| Variable | Default |
+| --- | --- |
+| `GROQ_MODEL` | `meta-llama/llama-4-scout-17b-16e-instruct` |
+| `HUGGINGFACE_MODEL` | `meta-llama/Llama-3.2-11B-Vision-Instruct` |
+| `NVIDIA_MODEL` | `mistralai/mistral-large-3-675b-instruct-2512` |
+| `NVIDIA_API_URL` | `https://integrate.api.nvidia.com/v1/chat/completions` |
+| `SAMBANOVA_MODEL` | `Llama-4-Maverick-17B-128E-Instruct` |
+| `SAMBANOVA_API_URL` | `https://api.sambanova.ai/v1/chat/completions` |
+| `CLOUDFLARE_MODEL` | `@cf/meta/llama-3-8b-instruct` |
 
 ### Service Configuration
 
@@ -142,7 +150,6 @@ At least one provider API key is required. Configure multiple providers for auto
 | `SCREENSHOT_WIDTH` | No | `1280` | Browser viewport width. |
 | `SCREENSHOT_HEIGHT` | No | `900` | Browser viewport height. |
 | `SCREENSHOT_QUALITY` | No | `70` | JPEG quality from 1 to 100. |
-| `MAX_OUTPUT_TOKENS` | No | `2048` | VLM response token limit. |
 
 ## Local development
 
@@ -194,10 +201,11 @@ npm run build
 
 ### Provider Priority
 
-The orchestrator tries providers in this order:
-1. **Groq** (if `GROQ_API_KEY` is set) - Primary
-2. **HuggingFace** (if `HUGGINGFACE_API_KEY` is set) - Secondary
-3. **NVIDIA** (if `NVIDIA_API_KEY` is set) - Tertiary
-4. **SambaNova** (if `SAMBANOVA_API_KEY` is set) - Quaternary
+The orchestrator tries providers in this order based on which API keys are configured:
+1. **Groq** (if `GROQ_API_KEY` is set)
+2. **Cloudflare** (if `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are set)
+3. **NVIDIA** (if `NVIDIA_API_KEY` is set)
+4. **HuggingFace** (if `HUGGINGFACE_API_KEY` is set)
+5. **SambaNova** (if `SAMBANOVA_API_KEY` is set)
 
-**Recommendation:** Configure all four providers for maximum resilience on free tiers.
+**Recommendation:** Configure multiple providers for maximum resilience on free tiers.

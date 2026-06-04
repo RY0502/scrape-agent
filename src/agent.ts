@@ -1,8 +1,6 @@
 import { Annotation, END, START, StateGraph } from "@langchain/langgraph";
-import { FreeTierOrchestrator } from "@freetier/orchestrator";
+import { createProviders, FreeTierOrchestrator, type LlmInput } from "@freetier/orchestrator";
 import { capturePageScreenshot } from "./browser.js";
-import { createProviders } from "./providers/factory.js";
-import type { VlmInput } from "./providers/types.js";
 
 const SYSTEM_PROMPT = [
   "You are an expert visual data extraction engine.",
@@ -12,7 +10,7 @@ const SYSTEM_PROMPT = [
   "If the requested data is not visible in the screenshot, return the user's requested empty or null structure."
 ].join(" ");
 
-const orchestrator = new FreeTierOrchestrator<VlmInput, string>(createProviders());
+const orchestrator = new FreeTierOrchestrator<LlmInput, string>(createProviders());
 
 const AgentState = Annotation.Root({
   url: Annotation<string>(),
