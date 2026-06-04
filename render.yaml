@@ -3,7 +3,7 @@ services:
     name: scrape-agent
     runtime: node
     plan: starter
-    buildCommand: rm -rf node_modules dist && npm ci && npm run build
+    buildCommand: rm -rf node_modules dist src/groq.ts src/groq.js src/providers && npm ci && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
