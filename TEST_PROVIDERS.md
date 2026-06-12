@@ -18,6 +18,7 @@ The test script:
    - NVIDIA
    - HuggingFace
    - SambaNova
+   - Cerebras
 3. Sends a vision request to each configured provider
 4. Reports success/failure with response time
 5. Skips providers that don't have API keys configured
@@ -34,6 +35,7 @@ CLOUDFLARE_ACCOUNT_ID=your_account_id_here
 NVIDIA_API_KEY=your_key_here
 HUGGINGFACE_API_KEY=your_key_here
 SAMBANOVA_API_KEY=your_key_here
+CEREBRAS_API_KEY=your_key_here
 ```
 
 You can copy `.env.example` to `.env` and fill in your keys:

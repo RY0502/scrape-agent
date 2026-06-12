@@ -82,7 +82,7 @@ async function main(): Promise<void> {
   console.log("\n🧪 Provider Test Suite");
   console.log("Testing each provider with a sample image...\n");
 
-  const providerNames = ["Groq", "Cloudflare", "NVIDIA", "SambaNova", "HuggingFace"];
+  const providerNames = ["Groq", "Cloudflare", "NVIDIA", "SambaNova", "HuggingFace", "Cerebras"];
 
   for (let i = 0; i < providerNames.length; i++) {
     await testProvider(providerNames[i], i + 1, providerNames.length);

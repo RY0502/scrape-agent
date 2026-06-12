@@ -6,7 +6,7 @@ A stateless TypeScript LangGraph agent that accepts a URL and extraction prompt,
 
 The service uses the `@freetier/orchestrator` framework with built-in support for multiple LLM providers:
 
-- **Supported providers:** Groq, HuggingFace, NVIDIA NIM, SambaNova, Cloudflare Workers AI
+- **Supported providers:** Groq, HuggingFace, NVIDIA NIM, SambaNova, Cloudflare Workers AI, Cerebras
 - **Automatic configuration:** Providers are initialized based on available API keys in environment
 - **Automatic failover:** On rate limits or unavailability, switches to next provider
 - **Sticky default:** Successful provider becomes default for subsequent requests
@@ -123,6 +123,7 @@ At least one provider API key is required. The framework automatically initializ
 | `SAMBANOVA_API_KEY` | Optional* | SambaNova API key |
 | `CLOUDFLARE_API_TOKEN` | Optional* | Cloudflare Workers AI API token |
 | `CLOUDFLARE_ACCOUNT_ID` | Optional* | Cloudflare account ID (required with `CLOUDFLARE_API_TOKEN`) |
+| `CEREBRAS_API_KEY` | Optional* | Cerebras API key |
 
 *At least one provider must be configured.
 
@@ -207,5 +208,6 @@ The orchestrator tries providers in this order based on which API keys are confi
 3. **NVIDIA** (if `NVIDIA_API_KEY` is set)
 4. **HuggingFace** (if `HUGGINGFACE_API_KEY` is set)
 5. **SambaNova** (if `SAMBANOVA_API_KEY` is set)
+6. **Cerebras** (if `CEREBRAS_API_KEY` is set)
 
 **Recommendation:** Configure multiple providers for maximum resilience on free tiers.

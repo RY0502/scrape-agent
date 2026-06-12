@@ -1,5 +1,6 @@
 import puppeteer, { type Browser } from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
+import sharp from "sharp";
 import { config } from "./config.js";
 
 // Keep graphics disabled on serverless - more stable
@@ -79,19 +80,28 @@ export async function capturePageScreenshot(url: string): Promise<string> {
       });
     }
 
-    const screenshot = await page.screenshot({
+    const screenshotBuffer = await page.screenshot({
       type: "jpeg",
       quality: config.SCREENSHOT_QUALITY,
       fullPage: true,
-      encoding: "base64"
+      encoding: "binary"
     });
 
     await page.close();
 
-    return screenshot;
+    // OCR preprocessing: grayscale + sharpen + normalize for better VLM text extraction
+    const processed = await sharp(screenshotBuffer)
+      .grayscale()
+      .sharpen({ sigma: 1.5 })
+      .normalize()
+      .toFormat("jpeg", { quality: config.SCREENSHOT_QUALITY })
+      .toBuffer();
+
+    return processed.toString("base64");
   } finally {
     if (browser) {
       await browser.close();
     }
   }
 }
+
