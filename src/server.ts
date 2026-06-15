@@ -6,7 +6,8 @@ import { config } from "./config.js";
 
 const requestSchema = z.object({
   url: z.string().url(),
-  prompt: z.string().min(1)
+  prompt: z.string().min(1),
+  fullPage: z.boolean().optional().default(false)
 });
 
 let activeRequests = 0;

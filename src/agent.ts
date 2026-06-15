@@ -15,13 +15,14 @@ const orchestrator = new FreeTierOrchestrator<LlmInput, string>(createProviders(
 const AgentState = Annotation.Root({
   url: Annotation<string>(),
   prompt: Annotation<string>(),
+  fullPage: Annotation<boolean>(),
   screenshotBase64: Annotation<string | undefined>(),
   result: Annotation<string | undefined>()
 });
 
 async function captureNode(state: typeof AgentState.State) {
   return {
-    screenshotBase64: await capturePageScreenshot(state.url)
+    screenshotBase64: await capturePageScreenshot(state.url, state.fullPage)
   };
 }
 
@@ -50,10 +51,11 @@ const graph = new StateGraph(AgentState)
   .addEdge("extract", END)
   .compile();
 
-export async function runExtractionAgent(input: { url: string; prompt: string }): Promise<string> {
+export async function runExtractionAgent(input: { url: string; prompt: string; fullPage: boolean }): Promise<string> {
   const finalState = await graph.invoke({
     url: input.url,
     prompt: input.prompt,
+    fullPage: input.fullPage,
     screenshotBase64: undefined,
     result: undefined
   });

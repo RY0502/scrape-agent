@@ -6,7 +6,7 @@ import { config } from "./config.js";
 // Keep graphics disabled on serverless - more stable
 chromium.setGraphicsMode = false;
 
-export async function capturePageScreenshot(url: string): Promise<string> {
+export async function capturePageScreenshot(url: string, fullPage = false): Promise<string> {
   let browser: Browser | undefined;
 
   try {
@@ -82,24 +82,37 @@ export async function capturePageScreenshot(url: string): Promise<string> {
 
     await new Promise((resolve) => setTimeout(resolve, config.PAGE_SETTLE_MS));
 
-    // Get page height and cap at 10000px for reasonable VLM token usage
-    const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
-    const cappedHeight = Math.min(pageHeight, 10000);
-    
-    if (pageHeight > cappedHeight) {
+    // Capture: either full page (capped at 10000px) or an efficient top-clip (default).
+    let screenshotBuffer: Buffer;
+    if (fullPage) {
+      const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+      const cappedHeight = Math.min(pageHeight, 10000);
       await page.setViewport({
         width: config.SCREENSHOT_WIDTH,
         height: cappedHeight,
         deviceScaleFactor: 1
       });
+      screenshotBuffer = await page.screenshot({
+        type: "jpeg",
+        quality: config.SCREENSHOT_QUALITY,
+        fullPage: true,
+        encoding: "binary"
+      }) as Buffer;
+    } else {
+      // Clip screenshot to only the top SCREENSHOT_MAX_HEIGHT pixels so the VLM
+      // only sees the first ~10 stock cards and not the full page of historic data.
+      screenshotBuffer = await page.screenshot({
+        type: "jpeg",
+        quality: config.SCREENSHOT_QUALITY,
+        encoding: "binary",
+        clip: {
+          x: 0,
+          y: 0,
+          width: config.SCREENSHOT_WIDTH,
+          height: config.SCREENSHOT_MAX_HEIGHT
+        }
+      }) as Buffer;
     }
-
-    const screenshotBuffer = await page.screenshot({
-      type: "jpeg",
-      quality: config.SCREENSHOT_QUALITY,
-      fullPage: true,
-      encoding: "binary"
-    });
 
     await page.close();
 

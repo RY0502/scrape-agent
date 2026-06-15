@@ -8,6 +8,7 @@ const envSchema = z.object({
   PAGE_SETTLE_MS: z.coerce.number().int().nonnegative().default(4_000),
   SCREENSHOT_WIDTH: z.coerce.number().int().positive().default(1280),
   SCREENSHOT_HEIGHT: z.coerce.number().int().positive().default(900),
+  SCREENSHOT_MAX_HEIGHT: z.coerce.number().int().positive().default(1800),
   SCREENSHOT_QUALITY: z.coerce.number().int().min(1).max(100).default(70)
 });
 
