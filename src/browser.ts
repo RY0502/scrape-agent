@@ -62,9 +62,23 @@ export async function capturePageScreenshot(url: string): Promise<string> {
     });
 
     await page.goto(url, {
-      waitUntil: "domcontentloaded",
+      waitUntil: "networkidle0",
       timeout: config.PAGE_TIMEOUT_MS
     });
+
+    // Smart wait: try to detect dynamically-loaded content (tables, grids, lists)
+    // before falling back to a blind settle timer.
+    try {
+      await page.waitForFunction(
+        () => {
+          const selectors = ['table tbody tr', '[role="grid"] [role="row"]', '.data-table tr', '.stock-table tr'];
+          return selectors.some(s => document.querySelectorAll(s).length > 0);
+        },
+        { timeout: config.PAGE_SETTLE_MS }
+      );
+    } catch {
+      // No known data selectors found within the timeout – fall through to blind settle
+    }
 
     await new Promise((resolve) => setTimeout(resolve, config.PAGE_SETTLE_MS));
 
