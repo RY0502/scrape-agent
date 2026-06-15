@@ -62,7 +62,7 @@ export async function capturePageScreenshot(url: string, fullPage = false): Prom
     });
 
     await page.goto(url, {
-      waitUntil: "networkidle2",
+      waitUntil: "domcontentloaded",
       timeout: config.PAGE_TIMEOUT_MS
     });
 
