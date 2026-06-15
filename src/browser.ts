@@ -62,7 +62,7 @@ export async function capturePageScreenshot(url: string, fullPage = false): Prom
     });
 
     await page.goto(url, {
-      waitUntil: "networkidle0",
+      waitUntil: "networkidle2",
       timeout: config.PAGE_TIMEOUT_MS
     });
 
@@ -123,6 +123,15 @@ export async function capturePageScreenshot(url: string, fullPage = false): Prom
       .normalize()
       .toFormat("jpeg", { quality: config.SCREENSHOT_QUALITY })
       .toBuffer();
+
+    // Save to file for debugging
+    try {
+      const fs = await import("fs/promises");
+      await fs.writeFile("debug_screenshot.jpg", processed);
+      console.log("Debug: Saved screenshot to debug_screenshot.jpg");
+    } catch (err) {
+      console.error("Failed to save debug screenshot:", err);
+    }
 
     return processed.toString("base64");
   } finally {
