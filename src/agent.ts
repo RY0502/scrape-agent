@@ -34,7 +34,8 @@ async function extractNode(state: typeof AgentState.State) {
   const result = await orchestrator.invoke({
     system: SYSTEM_PROMPT,
     prompt: state.prompt,
-    imageBase64: state.screenshotBase64
+    imageBase64: state.screenshotBase64,
+    mimeType: "image/jpeg"
   });
 
   return {
